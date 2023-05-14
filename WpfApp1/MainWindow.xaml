@@ -1,0 +1,271 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:av="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="av" x:Class="ColorPickerApp.MainWindow"
+        Title="Цветоподборщик" Icon="/ColorPickerApp.png"
+        Height="1080" Width="1920" FontSize="16" 
+        WindowState="Maximized" WindowStartupLocation="CenterScreen">
+    <Grid>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="10*"/>
+            <ColumnDefinition Width="1.2*"/>
+            <ColumnDefinition Width="0*"/>
+        </Grid.ColumnDefinitions>
+
+        <StackPanel x:Name="StackPanel_0"
+                    Grid.Row="0"
+                    Grid.RowSpan="4"
+                    Grid.Column="0"
+                    Margin="0,0,0,10">
+            <Image x:Name="ImgDynamic"
+                   HorizontalAlignment="Stretch"
+                   VerticalAlignment="Top"
+                   Margin="10,10,0,10"
+                   Height="980"
+                   Width="Auto"
+                   MouseLeftButtonDown="ImgDynamic_MouseLeftButtonDown"
+                   Cursor="Pen"/>
+        </StackPanel>
+
+        <StackPanel x:Name="StackPanel_1"
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    Grid.ColumnSpan="2"
+                    Orientation="Vertical" 
+                    Margin="0,20,0,0">
+            <Border BorderBrush="Black"
+                    BorderThickness="1,1,1,1"
+                    CornerRadius="5"
+                    Width="180"
+                    Height="30">
+                <Button Click="ImgUpload_Click"
+                        Content="Выберите изображение" 
+                        HorizontalAlignment="Center" 
+                        VerticalAlignment="Center"
+                        Background="{x:Null}" 
+                        BorderBrush="{x:Null}" 
+                        Width="180" 
+                        Height="30" 
+                        FontSize="15" 
+                        Cursor="Hand"/>
+            </Border>
+            <TextBlock Text="Информация о цвете:"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       TextAlignment="Center"
+                       Width="180"
+                       Height="30"
+                       FontSize="16"
+                       Margin="0,20,0,0">
+            </TextBlock>
+            <Border x:Name="ColorPreview" 
+                    HorizontalAlignment="Stretch" 
+                    VerticalAlignment="Stretch" 
+                    Width="180" Height="120" 
+                    Background="White" 
+                    BorderBrush="Black" 
+                    BorderThickness="1" 
+                    CornerRadius="5"
+                    Margin="0,0,0,0">
+            </Border>
+        </StackPanel>
+
+        <StackPanel x:Name="StackPanel_2"
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    Grid.ColumnSpan="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom" 
+                    Margin="0,0,0,-10">
+            <TextBlock x:Name="TextRGB" 
+                       HorizontalAlignment="Left" 
+                       VerticalAlignment="Center" 
+                       FontSize="16"
+                       Width="130"
+                       Height="30"
+                       Text="RGB: 0, 0, 0"
+                       Margin="0,0,0,0"
+                       Padding="0,4,0,0">
+            </TextBlock>
+            <Button Name="CopyRGB"
+                    Click="CopyColor_Click" 
+                    Background="White" 
+                    Height="30" 
+                    Width="30" 
+                    BorderThickness="0,0,0,0" 
+                    Margin="15,0,0,0" 
+                    Cursor="Hand">
+                <StackPanel Orientation="Horizontal" 
+                            HorizontalAlignment="Center" 
+                            VerticalAlignment="Center"
+                            Height="30"
+                            Width="30">
+                    <Image x:Name="CopyButton1" 
+                           Source="/Resources/CopyButton.png"
+                           Height="30"
+                           Width="30">
+                    </Image>
+                </StackPanel>
+            </Button>
+        </StackPanel>
+
+        <StackPanel x:Name="StackPanel_3"
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    Grid.ColumnSpan="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Top"
+                    Margin="0,20,0,0">
+            <TextBlock x:Name="TextHEX" 
+                       HorizontalAlignment="Left" 
+                       VerticalAlignment="Center" 
+                       FontSize="16" 
+                       Text="HEX: #000000"
+                       Width="130"
+                       Height="30"
+                       Margin="0,0,0,0"
+                       Padding="0,4,0,0">
+            </TextBlock>
+            <Button Name="CopyHEX"
+                    Click="CopyColor_Click" 
+                    Background="White" 
+                    Height="30" Width="30" 
+                    BorderThickness="0,0,0,0"
+                    Margin="15,0,0,0" 
+                    Cursor="Hand">
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Center" 
+                            VerticalAlignment="Center"
+                            Height="30"
+                            Width="30">
+                    <Image x:Name="CopyButton2" 
+                           Source="/Resources/CopyButton.png"
+                           Height="30"
+                           Width="30">
+                    </Image>
+                </StackPanel>
+            </Button>
+        </StackPanel>
+
+        <StackPanel x:Name="TopColors"
+            Grid.Row="1"
+            Grid.RowSpan="2"
+            Grid.Column="1"
+            Grid.ColumnSpan="2"
+            Orientation="Vertical"
+            Margin="0,60,0,0">
+            
+            <ProgressBar x:Name="ProcessingBar" 
+                         HorizontalAlignment="Stretch" 
+                         VerticalAlignment="Center"
+                         Width="180"
+                         Height="15"
+                         Margin="0,10,0,10"
+                         Background="{x:Null}" 
+                         BorderBrush="Black"
+                         IsIndeterminate="True" 
+                         Visibility="Hidden">
+            </ProgressBar>
+
+            <TextBlock Text="Топ 5 цветов:"
+               HorizontalAlignment="Center"
+               VerticalAlignment="Center"
+               TextAlignment="Center"
+               Width="180"
+               Height="30"
+               FontSize="16">
+            </TextBlock>
+
+            <StackPanel Orientation="Horizontal"
+                        Width="180"
+                        Margin="0,0,0,0">
+                <Border x:Name="TopColor1"
+                        Width="50" 
+                        Height="50"
+                        BorderThickness="1"
+                        BorderBrush="Black"
+                        CornerRadius="5"
+                        Margin="0,0,5,0"/>
+                <TextBlock x:Name="TopColorText1"
+                           FontSize="15"
+                           Text="RGB: 0, 0, 0" 
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal"
+                        Width="180"
+                        Margin="0,10,0,0">
+                <Border x:Name="TopColor2"
+                        Width="50" 
+                        Height="50"
+                        BorderThickness="1"
+                        BorderBrush="Black"
+                        CornerRadius="5"
+                        Margin="0,0,5,0"/>
+                <TextBlock x:Name="TopColorText2"
+                           FontSize="15"
+                           Text="RGB: 0, 0, 0"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal"
+                        Width="180"
+                        Margin="0,10,0,0">
+                <Border x:Name="TopColor3"
+                        Width="50" 
+                        Height="50"
+                        BorderThickness="1"
+                        BorderBrush="Black"
+                        CornerRadius="5"
+                        Margin="0,0,5,0"/>
+                <TextBlock x:Name="TopColorText3"
+                           FontSize="15"
+                           Text="RGB: 0, 0, 0"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal"
+                        Width="180"
+                        Margin="0,10,0,0">
+                <Border x:Name="TopColor4"
+                        Width="50" 
+                        Height="50"
+                        BorderThickness="1"
+                        BorderBrush="Black"
+                        CornerRadius="5"
+                        Margin="0,0,5,0"/>
+                <TextBlock x:Name="TopColorText4"
+                           FontSize="15"
+                           Text="RGB: 0, 0, 0"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal"
+                        Width="180"
+                        Margin="0,10,0,0">
+                <Border x:Name="TopColor5"
+                        Width="50" 
+                        Height="50"
+                        BorderThickness="1"
+                        BorderBrush="Black"
+                        CornerRadius="5"
+                        Margin="0,0,5,0"/>
+                <TextBlock x:Name="TopColorText5"
+                           FontSize="15"
+                           Text="RGB: 0, 0, 0"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+        </StackPanel>
+
+    </Grid>
+</Window>
