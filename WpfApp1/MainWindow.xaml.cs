@@ -14,29 +14,30 @@ namespace ColorPickerApp
 {
     public partial class MainWindow : Window
     {
-        // Обработчик изображений
+        // Объявление объектов для обработки изображения, клонирования, извлечения цвета и поиска топ цветов
         private readonly ImageHandler _imageHandler;
-
-        // Извлекатель цветов
+        private readonly ImageCloner _imageCloner;
         private readonly ColorExtractor _colorExtractor;
+        private readonly TopColorFinder _topColorFinder;
 
-        // Конструктор главного окна
         public MainWindow()
         {
+            // Инициализация компонентов
             InitializeComponent();
 
-            // Инициализация обработчика изображений и извлекателя цветов
+            // Инициализация объектов для обработки изображения, клонирования, извлечения цвета и поиска топ цветов
             _imageHandler = new ImageHandler();
+            _imageCloner = new ImageCloner();
             _colorExtractor = new ColorExtractor();
+            _topColorFinder = new TopColorFinder();
         }
 
-        // Обработчик нажатия на кнопку загрузки изображения
         private void ImgUpload_Click(object sender, RoutedEventArgs e)
         {
-            // Загрузка изображения
+            // Открытие изображения через ImageHandler
             BitmapImage image = _imageHandler.OpenImage();
 
-            // Если изображение не загружено, выходим из обработчика
+            // Если изображение не было загружено, то выходим из обработчика событий
             if (image == null) return;
 
             // Отображение загруженного изображения
@@ -45,41 +46,38 @@ namespace ColorPickerApp
             // Запуск задачи в отдельном потоке
             Task.Run(() =>
             {
-                // Клонирование изображения для работы в отдельном потоке
-                BitmapSource clone = _imageHandler.CloneBitmapSource(image);
+                // Клонирование изображения
+                BitmapSource clone = _imageCloner.CloneBitmapSource(image);
 
-                // Включение индикатора обработки в основном потоке
+                // Включение индикатора обработки
                 Dispatcher.Invoke(() => ProcessingBar.Visibility = Visibility.Visible);
 
-                // Получение пяти наиболее часто встречающихся цветов
-                List<Color> topColors = _colorExtractor.GetTopColors(clone, 5);
+                // Извлечение топ 5 цветов из изображения
+                List<Color> topColors = _topColorFinder.GetTopColors(clone, 5, _colorExtractor);
 
-                // Обновление интерфейса в основном потоке
+                // Обновление интерфейса
                 Dispatcher.Invoke(() =>
                 {
-                    // Отображение наиболее часто встречающихся цветов
+                    // Отображение топ цветов
                     DisplayTopColors(topColors);
-
-                    // Отключение индикатора обработки
+                    // Выключение индикатора обработки
                     ProcessingBar.Visibility = Visibility.Hidden;
                 });
             });
         }
 
-        // Обработчик нажатия на кнопку копирования цвета
         private void CopyColor_Click(object sender, RoutedEventArgs e)
         {
-            // Копирование выбранного цвета в буфер обмена
+            // Если нажатая кнопка, то копирование соответствующего значения цвета в буфер обмена
             if (sender is Button button)
             {
                 Clipboard.SetText(button.Name == "CopyRGB" ? TextRGB.Text : TextHEX.Text);
             }
         }
 
-        // Обработчик нажатия на изображение
         private void ImgDynamic_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            // Получение точки нажатия и цвета в этой точке
+            // Получение точки нажатия и извлечение цвета в этой точке
             Point clickPoint = e.GetPosition(ImgDynamic);
             Color color = _colorExtractor.GetColorAtPoint((BitmapSource)ImgDynamic.Source, clickPoint, ImgDynamic.ActualWidth, ImgDynamic.ActualHeight);
 
@@ -87,16 +85,14 @@ namespace ColorPickerApp
             DisplayColorInfo(color);
         }
 
-        // Метод для отображения информации о цвете
         private void DisplayColorInfo(Color color)
         {
-            // Отображение цвета и его кодов RGB и HEX
+            // Заполнение превью цвета и отображение значения в формате RGB и HEX
             ColorPreview.Background = new SolidColorBrush(color);
             TextRGB.Text = $"RGB: {color.R}, {color.G}, {color.B}";
             TextHEX.Text = $"HEX: #{color.R:X2}{color.G:X2}{color.B:X2}";
         }
 
-        // Метод для отображения наиболее часто встречающихся цветов
         private void DisplayTopColors(List<Color> colors)
         {
             // Массивы контейнеров и текстовых блоков для отображения цветов
@@ -117,12 +113,13 @@ namespace ColorPickerApp
         }
     }
 
-    public class ImageHandler
+// Класс для работы с изображениями
+public class ImageHandler
     {
-        // Фильтр для диалогового окна выбора файла с изображением
+        // Фильтр файлов для диалогового окна выбора изображений
         private const string ImageFilter = "Файлы изображений (*.png;*.jpeg;*.jpg;*.gif;*.raw;*.tiff;*.bmp;*.psd)|*.png;*.jpeg;*.jpg;*.gif;*.raw;*.tiff;*.bmp;*.psd";
 
-        // Метод для открытия изображения
+        // Открытие и возможное изменение размера изображения
         public BitmapImage OpenImage()
         {
             OpenFileDialog openFileDialog = new OpenFileDialog
@@ -130,13 +127,12 @@ namespace ColorPickerApp
                 Filter = ImageFilter
             };
 
-            // Открываем диалог выбора файла и загружаем изображение, если файл был выбран
             if (openFileDialog.ShowDialog() == true)
             {
                 Uri fileUri = new Uri(openFileDialog.FileName);
                 var sourceImage = new BitmapImage(fileUri);
 
-                // Создаем новое изображение, только если его размер больше определенного
+                // Если размер изображения больше заданного, изменяем его
                 return sourceImage.Width > 1280 || sourceImage.Height > 720
                     ? ResizeImage(sourceImage, 1280, 720)
                     : sourceImage;
@@ -145,42 +141,14 @@ namespace ColorPickerApp
             return null;
         }
 
-        // Метод для клонирования источника изображения
-        public BitmapSource CloneBitmapSource(BitmapSource source)
-        {
-            return source.Dispatcher.Invoke(() =>
-            {
-                // Если исходное изображение заморожено, просто возвращаем его
-                if (source.IsFrozen)
-                {
-                    return source;
-                }
-
-                // Если исходное изображение можно заморозить, замораживаем его и возвращаем
-                if (source.CanFreeze)
-                {
-                    source.Freeze();
-                    return source;
-                }
-
-                // Если исходное изображение нельзя заморозить, создаем его копию
-                var copy = new WriteableBitmap(source);
-                copy.Freeze();
-                return copy;
-            });
-        }
-
-        // Метод для изменения размера изображения
+        // Изменение размера изображения
         private BitmapImage ResizeImage(BitmapImage sourceImage, int maxWidth, int maxHeight)
         {
-            // Вычисляем соотношение сторон для сохранения пропорций изображения
             double ratio = Math.Min(maxWidth / sourceImage.Width, maxHeight / sourceImage.Height);
 
-            // Вычисляем новые размеры изображения
             var targetWidth = (int)(sourceImage.Width * ratio);
             var targetHeight = (int)(sourceImage.Height * ratio);
 
-            // Создаем новое изображение с измененными размерами
             var resizedImage = new BitmapImage();
             resizedImage.BeginInit();
             resizedImage.UriSource = sourceImage.UriSource;
@@ -192,51 +160,70 @@ namespace ColorPickerApp
         }
     }
 
+    // Класс для клонирования изображения
+    public class ImageCloner
+    {
+        public BitmapSource CloneBitmapSource(BitmapSource source)
+        {
+            // Метод Dispatcher.Invoke() используется для выполнения кода в потоке, в котором был создан Dispatcher
+            return source.Dispatcher.Invoke(() =>
+            {
+                // Если исходник заморожен, просто возвращаем его
+                if (source.IsFrozen)
+                {
+                    return source;
+                }
+
+                // Если исходник может быть заморожен, мы замораживаем и возвращаем его
+                if (source.CanFreeze)
+                {
+                    source.Freeze();
+                    return source;
+                }
+
+                // Клонируем исходное изображение
+                var copy = new WriteableBitmap(source);
+                copy.Freeze();
+                return copy;
+            });
+        }
+    }
+
+    // Класс для извлечения цвета из изображения
     public class ColorExtractor
     {
         private const int BitsPerPixelByteRatio = 8;
 
-        // Метод для получения цвета в заданной точке на изображении
+        // Получение цвета в заданной точке изображения
         public Color GetColorAtPoint(BitmapSource bitmapSource, Point point, double imageWidth, double imageHeight)
         {
-            // Если источник пуст, возвращаем цвет по умолчанию
             if (bitmapSource == null)
             {
                 return default(Color);
             }
 
-            // Вычисляем масштаб изображения
             double scaleX = bitmapSource.PixelWidth / imageWidth;
             double scaleY = bitmapSource.PixelHeight / imageHeight;
 
-            // Вычисляем координаты точки в пикселях
             int x = (int)(point.X * scaleX);
             int y = (int)(point.Y * scaleY);
 
-            // Проверяем, находится ли точка внутри изображения
             if (x >= 0 && x < bitmapSource.PixelWidth && y >= 0 && y < bitmapSource.PixelHeight)
             {
-                // Извлекаем и возвращаем цвет из точки на изображении
                 return ExtractColor(bitmapSource, x, y);
             }
 
-            // Если точка находится за пределами изображения, возвращаем цвет по умолчанию
             return default(Color);
         }
 
-        // Метод для извлечения цвета из определенной точки на изображении
-        private Color ExtractColor(BitmapSource bitmapSource, int x, int y)
+        // Извлечение цвета из конкретного пикселя изображения
+        public Color ExtractColor(BitmapSource bitmapSource, int x, int y)
         {
-            // Вычисляем шаг для извлечения пикселей
             int stride = (bitmapSource.PixelWidth * bitmapSource.Format.BitsPerPixel + 7) / BitsPerPixelByteRatio;
-
-            // Создаем массив для хранения данных пикселей
             byte[] pixels = new byte[bitmapSource.Format.BitsPerPixel / BitsPerPixelByteRatio];
 
-            // Копируем данные пикселей в массив
             bitmapSource.CopyPixels(new Int32Rect(x, y, 1, 1), pixels, stride, 0);
 
-            // В зависимости от формата пикселей возвращаем соответствующий цвет
             if (bitmapSource.Format == PixelFormats.Bgr32 || bitmapSource.Format == PixelFormats.Bgra32)
             {
                 return Color.FromRgb(pixels[2], pixels[1], pixels[0]);
@@ -247,17 +234,18 @@ namespace ColorPickerApp
             }
             else
             {
-                // Если формат пикселей не поддерживается, выбрасываем исключение
                 throw new NotSupportedException("Неподдерживаемый формат пикселей");
             }
         }
+    }
 
-        // Метод для получения списка самых популярных цветов
-        public List<Color> GetTopColors(BitmapSource bitmapSource, int topCount)
+    // Класс для определения самых часто встречающихся цветов в изображении
+    public class TopColorFinder
+    {
+        public List<Color> GetTopColors(BitmapSource bitmapSource, int topCount, ColorExtractor colorExtractor)
         {
             int rudenessLevel = 16;
 
-            // Если источник пуст, возвращаем null
             if (bitmapSource == null)
             {
                 return null;
@@ -265,15 +253,14 @@ namespace ColorPickerApp
 
             var colorCount = new ConcurrentDictionary<Color, int>();
 
-            // Проходим по всем пикселям изображения параллельно
+            // Проходим по всем пикселям изображения
             Parallel.For(0, bitmapSource.PixelWidth, x =>
             {
                 for (int y = 0; y < bitmapSource.PixelHeight; y++)
                 {
-                    // Извлекаем цвет из каждого пикселя
-                    var color = ExtractColor(bitmapSource, x, y);
+                    var color = colorExtractor.ExtractColor(bitmapSource, x, y);
 
-                    // Объединяем похожие цвета, уменьшая точность каждого компонента цвета
+                    // Квантование цвета
                     color = Color.FromArgb(
                         QuantizeColorComponent(color.A, rudenessLevel),
                         QuantizeColorComponent(color.R, rudenessLevel),
@@ -281,14 +268,12 @@ namespace ColorPickerApp
                         QuantizeColorComponent(color.B, rudenessLevel)
                     );
 
-                    // Обновляем или добавляем цвет в словарь, увеличивая его счетчик
+                    // Обновляем словарь с подсчетом количества каждого цвета
                     colorCount.AddOrUpdate(color, 1, (c, count) => count + 1);
                 }
             });
 
-            // Сортируем словарь по количеству каждого цвета в обратном порядке
-            // и берем первые 'topCount' цветов
-            // Возвращаем список самых популярных цветов
+            // Возвращаем топ самых встречающихся цветов
             return colorCount
                 .OrderByDescending(kvp => kvp.Value)
                 .Take(topCount)
@@ -296,8 +281,7 @@ namespace ColorPickerApp
                 .ToList();
         }
 
-        // Метод для уменьшения точности компонента цвета
-        // Это помогает объединить похожие цвета в один
+        // Квантование цвета
         private byte QuantizeColorComponent(byte colorComponent, int ton)
         {
             return (byte)((colorComponent / ton) * ton + ton / 2);
