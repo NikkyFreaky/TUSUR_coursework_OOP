@@ -35,7 +35,10 @@ namespace ColorPickerApp
         private void ImgUpload_Click(object sender, RoutedEventArgs e)
         {
             // Открытие изображения через ImageHandler
-            BitmapImage image = _imageHandler.OpenImage();
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+
+            ImageHandler imageHandler = new ImageHandler();
+            BitmapImage image = imageHandler.OpenImage(openFileDialog);
 
             // Если изображение не было загружено, то выходим из обработчика событий
             if (image == null) return;
@@ -113,19 +116,19 @@ namespace ColorPickerApp
         }
     }
 
-// Класс для работы с изображениями
-public class ImageHandler
+    public abstract class ImageProcessor
     {
         // Фильтр файлов для диалогового окна выбора изображений
-        private const string ImageFilter = "Файлы изображений (*.png;*.jpeg;*.jpg;*.gif;*.raw;*.tiff;*.bmp;*.psd)|*.png;*.jpeg;*.jpg;*.gif;*.raw;*.tiff;*.bmp;*.psd";
+        protected const string ImageFilter = "Файлы изображений (*.png;*.jpeg;*.jpg;*.gif;*.raw;*.tiff;*.bmp;*.psd)|*.png;*.jpeg;*.jpg;*.gif;*.raw;*.tiff;*.bmp;*.psd";
+    }
 
+    // Класс для работы с изображениями
+    public class ImageHandler : ImageProcessor
+    {
         // Открытие и возможное изменение размера изображения
-        public BitmapImage OpenImage()
+        public BitmapImage OpenImage(OpenFileDialog openFileDialog)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog
-            {
-                Filter = ImageFilter
-            };
+            openFileDialog.Filter = ImageFilter;
 
             if (openFileDialog.ShowDialog() == true)
             {
@@ -142,7 +145,7 @@ public class ImageHandler
         }
 
         // Изменение размера изображения
-        private BitmapImage ResizeImage(BitmapImage sourceImage, int maxWidth, int maxHeight)
+        public BitmapImage ResizeImage(BitmapImage sourceImage, int maxWidth, int maxHeight)
         {
             double ratio = Math.Min(maxWidth / sourceImage.Width, maxHeight / sourceImage.Height);
 
@@ -161,7 +164,7 @@ public class ImageHandler
     }
 
     // Класс для клонирования изображения
-    public class ImageCloner
+    public class ImageCloner : ImageProcessor
     {
         public BitmapSource CloneBitmapSource(BitmapSource source)
         {
@@ -190,7 +193,7 @@ public class ImageHandler
     }
 
     // Класс для извлечения цвета из изображения
-    public class ColorExtractor
+    public class ColorExtractor : ImageProcessor
     {
         private const int BitsPerPixelByteRatio = 8;
 
@@ -240,7 +243,7 @@ public class ImageHandler
     }
 
     // Класс для определения самых часто встречающихся цветов в изображении
-    public class TopColorFinder
+    public class TopColorFinder : ImageProcessor
     {
         public List<Color> GetTopColors(BitmapSource bitmapSource, int topCount, ColorExtractor colorExtractor)
         {
