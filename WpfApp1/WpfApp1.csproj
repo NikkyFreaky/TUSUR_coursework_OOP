@@ -56,7 +56,8 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>ColorPickerApp.ico</ApplicationIcon>
+    <ApplicationIcon>
+    </ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Costura, Version=5.7.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -234,6 +235,12 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Classes\ColorExtractor.cs" />
+    <Compile Include="Classes\ImageCloner.cs" />
+    <Compile Include="Classes\ImageHandler.cs" />
+    <Compile Include="Classes\ImageProcessor.cs" />
+    <Compile Include="Classes\TopColorFinder.cs" />
+    <Compile Include="Interfaces\Interfaces.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -270,12 +277,6 @@
     <Resource Include="Resources\CopyButton.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="ColorPickerApp.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="ColorPickerApp.ico" />
-  </ItemGroup>
-  <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.8">
       <Visible>False</Visible>
       <ProductName>Microsoft .NET Framework 4.8 %28x86 и x64%29</ProductName>
@@ -286,6 +287,9 @@
       <ProductName>.NET Framework 3.5 SP1</ProductName>
       <Install>false</Install>
     </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="ColorPickerApp.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

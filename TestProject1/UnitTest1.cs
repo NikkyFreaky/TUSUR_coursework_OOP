@@ -3,6 +3,7 @@ using Moq;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using ColorPickerApp.Classes;
 
 namespace ColorPickerApp.Tests
 {
@@ -160,7 +161,7 @@ namespace ColorPickerApp.Tests
         public void GetTopColors_ReturnsTopColors()
         {
             // Подготовка тестовых данных
-            var bitmapSource = new BitmapImage(new Uri("F:\\Documents\\Visual Studio 2022\\Projects\\WpfApp1\\TestProject1\\Images\\0.jpg"));
+            var bitmapSource = new BitmapImage(new Uri("F:\\Documents\\Visual Studio 2022\\Projects\\WpfApp1\\TestProject1\\Images\\1.jpg"));
             var colorExtractor = new ColorExtractor();
 
             var topColorFinder = new TopColorFinder();
